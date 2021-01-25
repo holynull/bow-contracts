@@ -1,12 +1,12 @@
 pragma solidity ^0.6.0;
 
 import "./HRC20.sol";
-import "./interfaces/IBStableToken.sol";
+import "./interfaces/IBowToken.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// BStable DAO Token
+// Bow DAO Token
 // All data's decimal is 18.
-contract BStableToken is IBStableToken, HRC20, Ownable {
+contract BowToken is IBowToken, HRC20, Ownable {
     using SafeMath for uint256;
     address minter;
 

@@ -1,5 +1,5 @@
 pragma solidity ^0.6.0;
-import "../interfaces/IBEP20.sol";
+import "../interfaces/IHRC20.sol";
 
 interface IBowProxy is IHRC20 {
     function getPoolInfo(uint256 _pid)

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./lib/TransferHelper.sol";
 
-contract BStablePool is HRC20, Ownable, ReentrancyGuard {
+contract BowPool is HRC20, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     uint256 private FEE_DENOMINATOR = 10**10;

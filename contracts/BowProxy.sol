@@ -2,16 +2,16 @@ pragma solidity ^0.6.0;
 
 import "./HRC20.sol";
 import "./interfaces/IHRC20.sol";
-import "./interfaces/IBStablePool.sol";
-import "./interfaces/IBStableProxy.sol";
-import "./interfaces/IBStableToken.sol";
+import "./interfaces/IBowPool.sol";
+import "./interfaces/IBowProxy.sol";
+import "./interfaces/IBowToken.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./lib/TransferHelper.sol";
 
 // Proxy
-contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
+contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     struct PoolInfo {
@@ -182,7 +182,7 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
             pools[_pid].poolAddress,
             dx
         );
-        IBStablePool(pools[_pid].poolAddress).exchange(i, j, dx, min_dy);
+        IBowPool(pools[_pid].poolAddress).exchange(i, j, dx, min_dy);
         uint256 dy = IHRC20(pools[_pid].coins[j]).balanceOf(address(this));
         require(dy > 0, "no coin out");
         userInfo[_pid][msg.sender].volume = userInfo[_pid][msg.sender]
@@ -244,8 +244,8 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
         uint256 lpSupply = IHRC20(pool.poolAddress).balanceOf(address(this));
         if (lpSupply != 0) {
             uint256 releaseAmt =
-                IBStableToken(tokenAddress).availableSupply().sub(
-                    IBStableToken(tokenAddress).totalSupply()
+                IBowToken(tokenAddress).availableSupply().sub(
+                    IBowToken(tokenAddress).totalSupply()
                 );
             uint256 reward =
                 releaseAmt
@@ -279,12 +279,12 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
             return;
         }
         uint256 releaseAmt =
-            IBStableToken(tokenAddress).availableSupply().sub(
-                IBStableToken(tokenAddress).totalSupply()
+            IBowToken(tokenAddress).availableSupply().sub(
+                IBowToken(tokenAddress).totalSupply()
             );
         uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
         uint256 reward = mintAmt.mul(pool.shareRewardRate).div(10**18);
-        IBStableToken(tokenAddress).mint(address(this), mintAmt);
+        IBowToken(tokenAddress).mint(address(this), mintAmt);
         pool.accTokenPerShare = pool.accTokenPerShare.add(
             reward.mul(10**18).div(lpSupply)
         );
@@ -297,11 +297,11 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
             return;
         }
         uint256 releaseAmt =
-            IBStableToken(tokenAddress).availableSupply().sub(
-                IBStableToken(tokenAddress).totalSupply()
+            IBowToken(tokenAddress).availableSupply().sub(
+                IBowToken(tokenAddress).totalSupply()
             );
         uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
-        IBStableToken(tokenAddress).mint(address(this), mintAmt);
+        IBowToken(tokenAddress).mint(address(this), mintAmt);
         uint256 lpSupply = IHRC20(pool.poolAddress).balanceOf(address(this));
         if (lpSupply > 0) {
             uint256 reward = mintAmt.mul(pool.shareRewardRate).div(10**18);
@@ -488,7 +488,7 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
         pools[_pid].allocPoint = _allocPoint;
     }
 
-    function migratePoolInfo(IBStableProxy from) private {
+    function migratePoolInfo(IBowProxy from) private {
         address _poolAddress;
         address[] memory _coins;
         uint256[] memory _data;
@@ -513,11 +513,11 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
 
     function transferMinterTo(address to) external override onlyOwner {
         require(_openMigration, "on allow when migration is open");
-        IBStableToken(tokenAddress).transferMinterTo(to);
+        IBowToken(tokenAddress).transferMinterTo(to);
     }
 
     function approveTokenTo(address nMinter) external override onlyOwner {
-        IBStableToken token = IBStableToken(tokenAddress);
+        IBowToken token = IBowToken(tokenAddress);
         require(
             token.getMinter() == nMinter,
             "only allow to approve token to a minter."
@@ -528,7 +528,7 @@ contract BStableProxy is IBStableProxy, HRC20, Ownable, ReentrancyGuard {
 
     function migrate(address _from) external onlyOwner {
         _openMigration = true;
-        IBStableProxy from = IBStableProxy(_from);
+        IBowProxy from = IBowProxy(_from);
         require(from.isMigrationOpen(), "from's migration not open.");
         require(migrateFrom == address(0), "migration only once.");
         migratePoolInfo(from);

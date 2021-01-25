@@ -22,22 +22,24 @@ module.exports = async function (deployer) {
             return StableCoin.new("DAI for Bow test", "bowDAI", totalSupply);
         }).then(dai => {
             daiAddress = dai.address;
+            console.log('bowDAI: ' + daiAddress);
             let totalSupply = web3.utils.toWei('100000000', 'ether');
             return StableCoin.new("HUSD for Bow test", "bowHUSD", totalSupply);
         }).then(husd => {
             husdAddress = husd.address;
+            console.log('bowHUSD: ' + husdAddress);
             let totalSupply = web3.utils.toWei('100000000', 'ether');
             return StableCoin.new("USDT for Bow test", "bowUSDT", totalSupply);
         }).then(usdt => {
             usdtAddress = usdt.address;
+            console.log('bowUSDT: ' + usdtAddress);
             let stableCoins = [daiAddress, husdAddress, usdtAddress];
             let A = 100;
             let fee = 30000000;// 1e-10, 0.003, 0.3%
             // let adminFee = 0;
             let adminFee = 6666666666; // 1e-10, 0.666667, 66.67% 
-            return BStablePool.new("Bow Pool (bowDAI/bowHUSD/bowUSDT) for test", "BOWLP-01", stableCoins, A, fee, adminFee);
+            return BowPool.new("Bow Pool (bowDAI/bowHUSD/bowUSDT) for test", "BOWLP-01", stableCoins, A, fee, adminFee);
         }).then(pool => {
-            let totalSupply = web3.utils.toWei('100000000', 'ether');
             p1Address = pool.address;
             console.log('Pool1: ' + p1Address);
         });
