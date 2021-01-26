@@ -12,7 +12,7 @@ module.exports = async function (deployer) {
     } else if (deployer.network_id == 1) { // main net
     } else if (deployer.network_id == 42) { // kovan
     } else if (deployer.network_id == 56) { // bsc main net
-    } else if (deployer.network_id == 97 || deployer.network_id == 5777) { //bsc test net
+    } else if (deployer.network_id == 256 || deployer.network_id == 5777) { //heco test net
         let daiAddress;
         let husdAddress;
         let usdtAddress;
