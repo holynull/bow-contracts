@@ -232,29 +232,31 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
             poolUsers[_pid].push(msg.sender);
         }
         updatePool(_pid);
+        uint256 bali = IHRC20(pools[_pid].coins[i]).balanceOf(address(this));
         TransferHelper.safeTransferFrom(
             pools[_pid].coins[i],
             msg.sender,
             address(this),
             dx
         );
+        dx = IBowTokenWallet(walletShareAddress)
+            .approveTokenToProxy(tokenAddress, balance)
+            .sub(bali);
         TransferHelper.safeApprove(
             pools[_pid].coins[i],
             pools[_pid].poolAddress,
             dx
         );
+        uint256 balj = IHRC20(pools[_pid].coins[j]).balanceOf(address(this));
         IBowPool(pools[_pid].poolAddress).exchange(i, j, dx, min_dy);
-        uint256 dy = IHRC20(pools[_pid].coins[j]).balanceOf(address(this));
+        uint256 dy =
+            IHRC20(pools[_pid].coins[j]).balanceOf(address(this)).sub(balj);
         require(dy > 0, "no coin out");
         userInfo[_pid][msg.sender].volume = userInfo[_pid][msg.sender]
             .volume
             .add(dy.mul(dy).div(dx));
         require(dy.mul(dy).div(dx) > 0, "accumulate points is 0");
-        uint256 tokenAmt =
-            IHRC20(tokenAddress)
-                .balanceOf(walletSwapAddress)
-                .mul(pools[_pid].swapRewardRate)
-                .div(10**18);
+        uint256 tokenAmt = IHRC20(tokenAddress).balanceOf(walletSwapAddress);
         uint256 rewardAmt =
             pools[_pid].totalVolReward.mul(dy.mul(dy).div(dx)).div(
                 pools[_pid].totalVolAccPoints
@@ -430,12 +432,17 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
             }
         }
         if (_amount > 0) {
+            uint256 lpBal =
+                IHRC20(pool.poolAddress).balanceOf(walletLPStakingAddress);
             TransferHelper.safeTransferFrom(
                 pool.poolAddress,
                 msg.sender,
                 walletLPStakingAddress,
                 _amount
             );
+            _amount = IHRC20(pool.poolAddress)
+                .balanceOf(walletLPStakingAddress)
+                .sub(lpBal);
             user.amount = user.amount.add(_amount);
         }
         user.rewardDebt = user.amount.mul(pool.accTokenPerShare).div(10**18);
