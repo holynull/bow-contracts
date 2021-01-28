@@ -624,14 +624,14 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         require(from.isMigrationOpen(), "from's migration not open.");
         require(migrateFrom == address(0), "migration only once.");
         migratePoolInfo(from);
-        tokenAddress = from.getTokenAddress();
-        uint256 tokenBal = IHRC20(tokenAddress).balanceOf(_from);
-        TransferHelper.safeTransferFrom(
-            tokenAddress,
-            _from,
-            address(this),
-            tokenBal
-        );
+        // tokenAddress = from.getTokenAddress();
+        // uint256 tokenBal = IHRC20(tokenAddress).balanceOf(_from);
+        // TransferHelper.safeTransferFrom(
+        //     tokenAddress,
+        //     _from,
+        //     address(this),
+        //     tokenBal
+        // );
 
         migrateFrom = _from;
     }
