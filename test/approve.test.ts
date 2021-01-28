@@ -1,34 +1,34 @@
 import { expect, assert } from 'chai';
 import {
-    BStableProxyContract,
-    BStableProxyInstance,
+    BowProxyContract,
+    BowProxyInstance,
     StableCoinContract,
     StableCoinInstance,
-    BStableTokenForTestDEVContract,
-    BStableTokenForTestDEVInstance,
-    BStablePoolContract,
-    BStablePoolInstance,
+    BowTokenForTestDEVContract,
+    BowTokenForTestDEVInstance,
+    BowPoolContract,
+    BowPoolInstance,
 } from '../build/types/truffle-types';
 // Load compiled artifacts
-const proxyContract: BStableProxyContract = artifacts.require('BStableProxy.sol');
+const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
 const stableCoinContract: StableCoinContract = artifacts.require('StableCoin.sol');
-const tokenContract: BStableTokenForTestDEVContract = artifacts.require('BStableTokenForTestDEV.sol');
-const poolContract: BStablePoolContract = artifacts.require('BStablePool.sol');
+const tokenContract: BowTokenForTestDEVContract = artifacts.require('BowTokenForTestDEV.sol');
+const poolContract: BowPoolContract = artifacts.require('BowPool.sol');
 import { BigNumber } from 'bignumber.js';
 import { config } from './config'
 
-contract('BStable proxy', async accounts => {
+contract('Bow proxy', async accounts => {
 
-    let proxyInstance: BStableProxyInstance;
+    let proxyInstance: BowProxyInstance;
     let dai: StableCoinInstance;
     let busd: StableCoinInstance;
     let usdt: StableCoinInstance;
     let btcb: StableCoinInstance;
     let renBtc: StableCoinInstance;
     let anyBtc: StableCoinInstance;
-    let bst: BStableTokenForTestDEVInstance;
-    let p1: BStablePoolInstance;
-    let p2: BStablePoolInstance;
+    let bst: BowTokenForTestDEVInstance;
+    let p1: BowPoolInstance;
+    let p2: BowPoolInstance;
     let denominator = new BigNumber(10).exponentiatedBy(18);
     let maxApproveAmt = new BigNumber(2).exponentiatedBy(255);
 

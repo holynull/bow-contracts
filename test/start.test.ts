@@ -1,21 +1,21 @@
 import { expect, assert } from 'chai';
 import {
-    BStableProxyContract,
-    BStableProxyInstance,
-    BStableTokenForTestDEVContract,
-    BStableTokenForTestDEVInstance,
+    BowProxyContract,
+    BowProxyInstance,
+    BowTokenForTestDEVContract,
+    BowTokenForTestDEVInstance,
 } from '../build/types/truffle-types';
 // Load compiled artifacts
-const proxyContract: BStableProxyContract = artifacts.require('BStableProxy.sol');
-const tokenContract: BStableTokenForTestDEVContract = artifacts.require('BStableTokenForTestDEV.sol');
+const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
+const tokenContract: BowTokenForTestDEVContract = artifacts.require('BowTokenForTestDEV.sol');
 import { BigNumber } from 'bignumber.js';
 import { config } from './config';
 
-contract('BStable proxy', async accounts => {
+contract('Bow proxy', async accounts => {
 
 
-    let proxyInstance: BStableProxyInstance;
-    let bst: BStableTokenForTestDEVInstance;
+    let proxyInstance: BowProxyInstance;
+    let bst: BowTokenForTestDEVInstance;
     let denominator = new BigNumber(10).exponentiatedBy(18);
 
 

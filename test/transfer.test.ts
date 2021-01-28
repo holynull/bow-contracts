@@ -1,17 +1,17 @@
 import { expect, assert } from 'chai';
 import {
-    BStableProxyContract, BStableProxyInstance, StableCoinContract, StableCoinInstance
+    BowProxyContract, BowProxyInstance, StableCoinContract, StableCoinInstance
 } from '../build/types/truffle-types';
 // Load compiled artifacts
-const proxyContract: BStableProxyContract = artifacts.require('BStableProxy.sol');
+const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
 const stableCoinContract: StableCoinContract = artifacts.require('StableCoin.sol');
 import { BigNumber } from 'bignumber.js';
 import { config } from './config';
 
-contract('BStable proxy', async accounts => {
+contract('Bow proxy', async accounts => {
 
 
-    let proxyInstance: BStableProxyInstance;
+    let proxyInstance: BowProxyInstance;
     let dai: StableCoinInstance;
     let busd: StableCoinInstance;
     let usdt: StableCoinInstance;

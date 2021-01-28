@@ -1,28 +1,28 @@
 import { expect, assert } from 'chai';
 import {
-    BStableProxyContract,
-    BStableProxyInstance,
+    BowProxyContract,
+    BowProxyInstance,
     StableCoinContract,
     StableCoinInstance,
-    BStableTokenForTestDEVContract,
-    BStableTokenForTestDEVInstance,
-    BStablePoolContract,
-    BStablePoolInstance,
+    BowTokenForTestDEVContract,
+    BowTokenForTestDEVInstance,
+    BowPoolContract,
+    BowPoolInstance,
 } from '../build/types/truffle-types';
 // Load compiled artifacts
-const proxyContract: BStableProxyContract = artifacts.require('BStableProxy.sol');
+const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
 const stableCoinContract: StableCoinContract = artifacts.require('StableCoin.sol');
-const tokenContract: BStableTokenForTestDEVContract = artifacts.require('BStableTokenForTestDEV.sol');
-const poolContract: BStablePoolContract = artifacts.require('BStablePool.sol');
+const tokenContract: BowTokenForTestDEVContract = artifacts.require('BowTokenForTestDEV.sol');
+const poolContract: BowPoolContract = artifacts.require('BowPool.sol');
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 import { BigNumber } from 'bignumber.js';
 import { config } from './config';
 
-contract('BStable proxy', async accounts => {
+contract('Bow proxy', async accounts => {
 
 
-    let proxyInstance: BStableProxyInstance;
-    let pools = Array<BStablePoolInstance>();
+    let proxyInstance: BowProxyInstance;
+    let pools = Array<BowPoolInstance>();
     let denominator = new BigNumber(10).exponentiatedBy(18);
 
     before('Get proxy contract instance', async () => {
