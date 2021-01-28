@@ -47,4 +47,13 @@ interface IBowProxy is IHRC20 {
     function transferMinterTo(address to) external;
 
     function approveTokenTo(address nMinter) external;
+
+    function getWallets()
+        external
+        view
+        returns (
+            address walletShare,
+            address walletSwap,
+            address walletLPStaking
+        );
 }

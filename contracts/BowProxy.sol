@@ -1,10 +1,12 @@
 pragma solidity ^0.6.0;
 
 import "./HRC20.sol";
+import "./BowTokenWallet.sol";
 import "./interfaces/IHRC20.sol";
 import "./interfaces/IBowPool.sol";
 import "./interfaces/IBowProxy.sol";
 import "./interfaces/IBowToken.sol";
+import "./interfaces/IBowTokenWallet.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -51,6 +53,10 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
     bool _openMigration = false;
     address migrateFrom;
 
+    address walletShareAddress;
+    address walletSwapAddress;
+    address walletLPStakingAddress;
+
     modifier noOpenMigration() {
         require(!_openMigration, "a migration is open.");
         _;
@@ -63,6 +69,61 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
     ) public HRC20(_name, _symbol) {
         transferOwnership(msg.sender);
         tokenAddress = _tokenAddress;
+        (
+            walletShareAddress,
+            walletSwapAddress,
+            walletLPStakingAddress
+        ) = createWallet();
+    }
+
+    function createWallet()
+        internal
+        returns (
+            address l,
+            address s,
+            address lp
+        )
+    {
+        return (
+            address(
+                new BowTokenWallet(
+                    "Bow Token Wallet for LP farming reward",
+                    "BTWL",
+                    address(this)
+                )
+            ),
+            address(
+                new BowTokenWallet(
+                    "Bow Token Wallet for LP swap reward",
+                    "BTWS",
+                    address(this)
+                )
+            ),
+            address(
+                new BowTokenWallet(
+                    "Bow Token Wallet for LP staking",
+                    "BTWLP",
+                    address(this)
+                )
+            )
+        );
+    }
+
+    function getWallets()
+        public
+        view
+        override
+        returns (
+            address walletShare,
+            address walletSwap,
+            address walletLPStaking
+        )
+    {
+        return (
+            walletLPStakingAddress,
+            walletSwapAddress,
+            walletLPStakingAddress
+        );
     }
 
     function getPoolInfo(uint256 _pid)
@@ -170,7 +231,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         if (!exists) {
             poolUsers[_pid].push(msg.sender);
         }
-        updatePoolForExchange(_pid);
+        updatePool(_pid);
         TransferHelper.safeTransferFrom(
             pools[_pid].coins[i],
             msg.sender,
@@ -191,29 +252,45 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         require(dy.mul(dy).div(dx) > 0, "accumulate points is 0");
         uint256 tokenAmt =
             IHRC20(tokenAddress)
-                .balanceOf(address(this))
+                .balanceOf(walletSwapAddress)
                 .mul(pools[_pid].swapRewardRate)
                 .div(10**18);
         uint256 rewardAmt =
-            pools[_pid]
-                .totalVolReward
-                .add(tokenAmt)
-                .mul(dy.mul(dy).div(dx))
-                .div(dy.mul(dy).div(dx).add(pools[_pid].totalVolAccPoints));
+            pools[_pid].totalVolReward.mul(dy.mul(dy).div(dx)).div(
+                pools[_pid].totalVolAccPoints
+            );
         if (rewardAmt > tokenAmt) {
             userInfo[_pid][msg.sender].volReward = userInfo[_pid][msg.sender]
                 .volReward
                 .add(tokenAmt);
-            TransferHelper.safeTransfer(tokenAddress, msg.sender, tokenAmt);
             pools[_pid].totalVolReward = pools[_pid].totalVolReward.add(
+                tokenAmt
+            );
+            IBowTokenWallet(walletSwapAddress).approveTokenToProxy(
+                tokenAddress,
+                tokenAmt
+            );
+            TransferHelper.safeTransferFrom(
+                tokenAddress,
+                walletSwapAddress,
+                msg.sender,
                 tokenAmt
             );
         } else {
             userInfo[_pid][msg.sender].volReward = userInfo[_pid][msg.sender]
                 .volReward
                 .add(rewardAmt);
-            TransferHelper.safeTransfer(tokenAddress, msg.sender, rewardAmt);
             pools[_pid].totalVolReward = pools[_pid].totalVolReward.add(
+                rewardAmt
+            );
+            IBowTokenWallet(walletSwapAddress).approveTokenToProxy(
+                tokenAddress,
+                rewardAmt
+            );
+            TransferHelper.safeTransferFrom(
+                tokenAddress,
+                walletSwapAddress,
+                msg.sender,
                 rewardAmt
             );
         }
@@ -241,7 +318,8 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         PoolInfo storage pool = pools[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accSushiPerShare = pool.accTokenPerShare;
-        uint256 lpSupply = IHRC20(pool.poolAddress).balanceOf(address(this));
+        uint256 lpSupply =
+            IHRC20(pool.poolAddress).balanceOf(walletLPStakingAddress);
         if (lpSupply != 0) {
             uint256 releaseAmt =
                 IBowToken(tokenAddress).availableSupply().sub(
@@ -273,7 +351,8 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         if (block.timestamp <= pool.lastUpdateTime) {
             return;
         }
-        uint256 lpSupply = IHRC20(pool.poolAddress).balanceOf(address(this));
+        uint256 lpSupply =
+            IHRC20(pool.poolAddress).balanceOf(walletLPStakingAddress);
         if (lpSupply == 0) {
             pool.lastUpdateTime = block.timestamp;
             return;
@@ -283,32 +362,13 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
                 IBowToken(tokenAddress).totalSupply()
             );
         uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
-        uint256 reward = mintAmt.mul(pool.shareRewardRate).div(10**18);
-        IBowToken(tokenAddress).mint(address(this), mintAmt);
+        uint256 rewardShare = mintAmt.mul(pool.shareRewardRate).div(10**18);
+        uint256 rewardSwap = mintAmt.mul(pool.swapRewardRate).div(10**18);
+        IBowToken(tokenAddress).mint(walletShareAddress, rewardShare);
+        IBowToken(tokenAddress).mint(walletSwapAddress, rewardSwap);
         pool.accTokenPerShare = pool.accTokenPerShare.add(
-            reward.mul(10**18).div(lpSupply)
+            rewardShare.mul(10**18).div(lpSupply)
         );
-        pool.lastUpdateTime = block.timestamp;
-    }
-
-    function updatePoolForExchange(uint256 _pid) public noOpenMigration {
-        PoolInfo storage pool = pools[_pid];
-        if (block.timestamp <= pool.lastUpdateTime) {
-            return;
-        }
-        uint256 releaseAmt =
-            IBowToken(tokenAddress).availableSupply().sub(
-                IBowToken(tokenAddress).totalSupply()
-            );
-        uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
-        IBowToken(tokenAddress).mint(address(this), mintAmt);
-        uint256 lpSupply = IHRC20(pool.poolAddress).balanceOf(address(this));
-        if (lpSupply > 0) {
-            uint256 reward = mintAmt.mul(pool.shareRewardRate).div(10**18);
-            pool.accTokenPerShare = pool.accTokenPerShare.add(
-                reward.mul(10**18).div(lpSupply)
-            );
-        }
         pool.lastUpdateTime = block.timestamp;
     }
 
@@ -333,18 +393,20 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
                 );
             if (pending > 0) {
                 uint256 tokenBal =
-                    IHRC20(tokenAddress)
-                        .balanceOf(address(this))
-                        .mul(pool.shareRewardRate)
-                        .div(10**18);
+                    IHRC20(tokenAddress).balanceOf(walletShareAddress);
                 if (tokenBal >= pending) {
                     userInfo[_pid][msg.sender].farmingReward = userInfo[_pid][
                         msg.sender
                     ]
                         .farmingReward
                         .add(pending);
-                    TransferHelper.safeTransfer(
+                    IBowTokenWallet(walletShareAddress).approveTokenToProxy(
                         tokenAddress,
+                        pending
+                    );
+                    TransferHelper.safeTransferFrom(
+                        tokenAddress,
+                        walletShareAddress,
                         msg.sender,
                         pending
                     );
@@ -354,8 +416,13 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
                     ]
                         .farmingReward
                         .add(tokenBal);
-                    TransferHelper.safeTransfer(
+                    IBowTokenWallet(walletShareAddress).approveTokenToProxy(
                         tokenAddress,
+                        tokenBal
+                    );
+                    TransferHelper.safeTransferFrom(
+                        tokenAddress,
+                        walletShareAddress,
                         msg.sender,
                         tokenBal
                     );
@@ -366,7 +433,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
             TransferHelper.safeTransferFrom(
                 pool.poolAddress,
                 msg.sender,
-                address(this),
+                walletLPStakingAddress,
                 _amount
             );
             user.amount = user.amount.add(_amount);
@@ -386,30 +453,50 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
             );
         if (pending > 0) {
             uint256 tokenBal =
-                IHRC20(tokenAddress)
-                    .balanceOf(address(this))
-                    .mul(pool.shareRewardRate)
-                    .div(10**18);
+                IHRC20(tokenAddress).balanceOf(walletShareAddress);
             if (tokenBal >= pending) {
                 userInfo[_pid][msg.sender].farmingReward = userInfo[_pid][
                     msg.sender
                 ]
                     .farmingReward
                     .add(pending);
-                TransferHelper.safeTransfer(tokenAddress, msg.sender, pending);
+                IBowTokenWallet(walletShareAddress).approveTokenToProxy(
+                    tokenAddress,
+                    pending
+                );
+                TransferHelper.safeTransferFrom(
+                    tokenAddress,
+                    walletShareAddress,
+                    msg.sender,
+                    pending
+                );
             } else {
                 userInfo[_pid][msg.sender].farmingReward = userInfo[_pid][
                     msg.sender
                 ]
                     .farmingReward
                     .add(tokenBal);
-                TransferHelper.safeTransfer(tokenAddress, msg.sender, tokenBal);
+                IBowTokenWallet(walletShareAddress).approveTokenToProxy(
+                    tokenAddress,
+                    tokenBal
+                );
+                TransferHelper.safeTransferFrom(
+                    tokenAddress,
+                    walletShareAddress,
+                    msg.sender,
+                    tokenBal
+                );
             }
         }
         if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
-            TransferHelper.safeTransfer(
+            IBowTokenWallet(walletLPStakingAddress).approveTokenToProxy(
                 pool.poolAddress,
+                _amount
+            );
+            TransferHelper.safeTransferFrom(
+                pool.poolAddress,
+                walletLPStakingAddress,
                 address(msg.sender),
                 _amount
             );
@@ -424,8 +511,13 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         uint256 amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
-        TransferHelper.safeTransfer(
+        IBowTokenWallet(walletLPStakingAddress).approveTokenToProxy(
             pool.poolAddress,
+            amount
+        );
+        TransferHelper.safeTransferFrom(
+            pool.poolAddress,
+            walletLPStakingAddress,
             address(msg.sender),
             amount
         );
