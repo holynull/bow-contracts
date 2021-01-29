@@ -49,6 +49,7 @@ module.exports = {
             host: "127.0.0.1",     // Localhost (default: none)
             port: 8545,            // Standard Ethereum port (default: none)
             network_id: "5777",       // Any network (default: none)
+            gas: 10000000,        // Rinkeby has a lower block limit than mainnet
         },
         dev_skipMigrations: {
             host: "127.0.0.1",     // Localhost (default: none)
@@ -121,7 +122,7 @@ module.exports = {
             provider: () => new HDWalletProvider(mnemonic, "https://http-testnet.hecochain.com"),
             network_id: 256,
             chain_id: 256,
-            // gas: 3000000,
+            // gas: ,
             // confirmations: 2,
             // timeoutBlocks: 2000,
             // skipDryRun: true,

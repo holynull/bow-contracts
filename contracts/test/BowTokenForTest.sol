@@ -58,20 +58,22 @@ contract BowTokenForTest is IBowToken, HRC20, Ownable {
     function _updateMiningParameters() internal {
         uint256 _rate = rate;
         uint256 _start_epoch_supply = start_epoch_supply;
+        if (mining_epoch < 4) {
+            start_epoch_time = start_epoch_time.add(RATE_REDUCTION_TIME);
+            mining_epoch = mining_epoch + 1;
 
-        start_epoch_time = start_epoch_time.add(RATE_REDUCTION_TIME);
-        mining_epoch = mining_epoch + 1;
-
-        if (_rate == 0) {
-            _rate = INITIAL_RATE;
-        } else {
-            _start_epoch_supply = _start_epoch_supply.add(
-                _rate.mul(RATE_REDUCTION_TIME)
-            );
-            start_epoch_supply = _start_epoch_supply;
-            _rate = _rate.mul(10**18).div(RATE_REDUCTION_COEFFICIENT);
+            if (_rate == 0) {
+                _rate = INITIAL_RATE;
+            } else {
+                _start_epoch_supply = _start_epoch_supply.add(
+                    _rate.mul(RATE_REDUCTION_TIME)
+                );
+                start_epoch_supply = _start_epoch_supply;
+                _rate = _rate.mul(10**18).div(RATE_REDUCTION_COEFFICIENT);
+            }
+            rate = _rate;
         }
-        rate = _rate;
+
         emit UpdateMiningParameters(
             block.timestamp,
             _rate,
@@ -108,9 +110,13 @@ contract BowTokenForTest is IBowToken, HRC20, Ownable {
     }
 
     function _availableSupply() internal view returns (uint256 result) {
-        result = start_epoch_supply.add(
-            block.timestamp.sub(start_epoch_time).mul(rate)
-        );
+        if (mining_epoch < 4) {
+            result = start_epoch_supply.add(
+                block.timestamp.sub(start_epoch_time).mul(rate)
+            );
+        } else {
+            result = totalSupply();
+        }
     }
 
     function availableSupply() external view override returns (uint256 result) {

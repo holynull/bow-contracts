@@ -8,12 +8,15 @@ import {
     BowTokenForTestDEVInstance,
     BowPoolContract,
     BowPoolInstance,
+    BowTokenWalletContract,
+    BowTokenWalletInstance,
 } from '../build/types/truffle-types';
 // Load compiled artifacts
 const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
 const stableCoinContract: StableCoinContract = artifacts.require('StableCoin.sol');
 const tokenContract: BowTokenForTestDEVContract = artifacts.require('BowTokenForTestDEV.sol');
 const poolContract: BowPoolContract = artifacts.require('BowPool.sol');
+const bowTokenWalletContract: BowTokenWalletContract = artifacts.require('BowTokenWallet.sol');
 import { BigNumber } from 'bignumber.js';
 import { config } from './config'
 
@@ -30,6 +33,9 @@ contract('Bow proxy', async accounts => {
     let bst: BowTokenForTestDEVInstance;
     let p1: BowPoolInstance;
     let p2: BowPoolInstance;
+    let walletShare: BowTokenWalletInstance;
+    let walletSwap: BowTokenWalletInstance;
+    let walletStaking: BowTokenWalletInstance;
     let denominator = new BigNumber(10).exponentiatedBy(18);
 
 
@@ -47,6 +53,10 @@ contract('Bow proxy', async accounts => {
         anyBtc = await stableCoinContract.at(p2Info[1][2]);
         let tokenAddress = await proxyInstance.getTokenAddress();
         bst = await tokenContract.at(tokenAddress);
+        let walletAddresses = await proxyInstance.getWallets();
+        walletShare = await bowTokenWalletContract.at(walletAddresses[0]);
+        walletSwap = await bowTokenWalletContract.at(walletAddresses[1]);
+        walletStaking = await bowTokenWalletContract.at(walletAddresses[2]);
         console.log('======================================================');
         for (let i = 0; i < accounts.length; i++) {
             console.log('accounts[ ' + i + ' ]');
@@ -83,8 +93,14 @@ contract('Bow proxy', async accounts => {
         console.log('BST totalSupply: ' + new BigNumber(bstTotalSupply).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
         let bstAvailableSupply = await bst.availableSupply();
         console.log('BST availableSupply: ' + new BigNumber(bstAvailableSupply).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
-        let bstProxyBal = await bst.balanceOf(config.proxyAddress);
-        console.log('Proxy BST balance: ' + new BigNumber(bstProxyBal).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+        let shareBSTBalStr = await bst.balanceOf(walletShare.address);
+        console.log('Share reward BST balance: ' + new BigNumber(shareBSTBalStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+        let swapBSTBalStr = await bst.balanceOf(walletSwap.address);
+        console.log('Swap reward BST balance: ' + new BigNumber(swapBSTBalStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+        let stakingLPBalStr1 = await p1.balanceOf(walletStaking.address);
+        console.log('Staking p1\'s LP: ' + new BigNumber(stakingLPBalStr1).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+        let stakingLPBalStr2 = await p2.balanceOf(walletStaking.address);
+        console.log('Staking p2\'s LP: ' + new BigNumber(stakingLPBalStr2).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
         let bstRate = await bst.getRate();
         console.log('BST rate: ' + new BigNumber(bstRate).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
         let stage = await bst.getMiningEpoch();

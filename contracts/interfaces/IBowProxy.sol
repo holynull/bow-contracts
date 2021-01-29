@@ -1,5 +1,6 @@
 pragma solidity ^0.6.0;
 import "../interfaces/IHRC20.sol";
+import "../BowTokenWallet.sol";
 
 interface IBowProxy is IHRC20 {
     function getPoolInfo(uint256 _pid)
@@ -52,8 +53,8 @@ interface IBowProxy is IHRC20 {
         external
         view
         returns (
-            address walletShare,
-            address walletSwap,
-            address walletLPStaking
+            BowTokenWallet walletShare,
+            BowTokenWallet walletSwap,
+            BowTokenWallet walletLPStaking
         );
 }

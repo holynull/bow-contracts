@@ -61,13 +61,14 @@ module.exports = async function (deployer) {
             let fee = 30000000;// 1e-10, 0.003, 0.3%
             // let adminFee = 0;
             let adminFee = 6666666666; // 1e-10, 0.666667, 66.67% 
-            return BStablePool.new("Bow Pool (HBTC/renBTC/anyBTC) for test", "BOWLP-02", stableCoins, A, fee, adminFee);
+            return BowPool.new("Bow Pool (HBTC/renBTC/anyBTC) for test", "BOWLP-02", stableCoins, A, fee, adminFee);
         }).then(pool => {
             p2Address = pool.address;
-            return BStableTokenForTestDEV.new("Bow DAO Token", "BOW");
+            return BowTokenForTestDEV.new("Bow DAO Token", "BOW");
         }).then(async bow => {
             console.log("Token's address: " + bow.address);
-            let proxy = await BStableProxy.new("Bow Pools Proxy for test", "BOWPROXY-V1", bow.address);
+            let proxy = await BowProxy.new("Bow Pools Proxy for test", "BOWPROXY-V1", bow.address);
+            // await proxy.createWallet();
             console.log("Proxy's address: " + proxy.address);
             await proxy.addPool(p1Address, [daiAddress, busdAddress, usdtAddress], 6);
             await proxy.addPool(p2Address, [btcbAddress, renBtcAddress, anyBtcAddress], 4);
