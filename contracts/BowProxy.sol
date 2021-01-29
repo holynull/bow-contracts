@@ -239,9 +239,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
             address(this),
             dx
         );
-        dx = IBowTokenWallet(walletShareAddress)
-            .approveTokenToProxy(tokenAddress, balance)
-            .sub(bali);
+        dx = IHRC20(pools[_pid].coins[i]).balanceOf(address(this)).sub(bali);
         TransferHelper.safeApprove(
             pools[_pid].coins[i],
             pools[_pid].poolAddress,
