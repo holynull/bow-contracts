@@ -110,7 +110,7 @@ contract BowTokenForTest is IBowToken, HRC20, Ownable {
     }
 
     function _availableSupply() internal view returns (uint256 result) {
-        if (mining_epoch < 4) {
+        if (mining_epoch < 4 && rate > 0) {
             result = start_epoch_supply.add(
                 block.timestamp.sub(start_epoch_time).mul(rate)
             );
