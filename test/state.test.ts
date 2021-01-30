@@ -85,8 +85,12 @@ contract('Bow proxy', async accounts => {
             console.log("BST balance: " + new BigNumber(bstBalStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             console.log("Volume Reward p1: " + new BigNumber(userInfo1[3]).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             console.log("Farming Reward p1: " + new BigNumber(userInfo1[4]).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+            let pending1 = await proxyInstance.pendingReward(0, accounts[i]);
+            console.log("p1 Share pending reward: " + new BigNumber(pending1).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             console.log("Volume Reward p2: " + new BigNumber(userInfo2[3]).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             console.log("Farming Reward p2: " + new BigNumber(userInfo2[4]).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+            let pending2 = await proxyInstance.pendingReward(1, accounts[i]);
+            console.log("p2 Share pending reward: " + new BigNumber(pending2).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             console.log('======================================================');
         }
         let bstTotalSupply = await bst.totalSupply();
