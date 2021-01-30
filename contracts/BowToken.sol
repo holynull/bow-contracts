@@ -60,7 +60,6 @@ contract BowToken is IBowToken, HRC20, Ownable {
     function _updateMiningParameters() internal {
         uint256 _rate = rate;
         uint256 _start_epoch_supply = start_epoch_supply;
-        if (mining_epoch < 4) {
             start_epoch_time = start_epoch_time.add(RATE_REDUCTION_TIME);
             mining_epoch = mining_epoch + 1;
 
@@ -74,7 +73,6 @@ contract BowToken is IBowToken, HRC20, Ownable {
                 _rate = _rate.mul(10**18).div(RATE_REDUCTION_COEFFICIENT);
             }
             rate = _rate;
-        }
 
         emit UpdateMiningParameters(
             block.timestamp,
