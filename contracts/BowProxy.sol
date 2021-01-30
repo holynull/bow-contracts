@@ -475,7 +475,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    function emergencyWithdraw(uint256 _pid) external noOpenMigration {
+    function emergencyWithdraw(uint256 _pid) external {
         PoolInfo storage pool = pools[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         uint256 amount = user.amount;
