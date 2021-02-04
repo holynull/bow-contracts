@@ -113,6 +113,16 @@ contract('Bow proxy', async accounts => {
         console.log('BST startSupply: ' + new BigNumber(startSupply).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
         let startTime = await bst.startEpochTime();
         console.log('BST start time: ' + new Date(Number(startTime) * 1000));
+        console.log('======================================================');
+        console.log('Pool1: ' + p1.address);
+        console.log('dai: ' + dai.address);
+        console.log('xusd: ' + busd.address);
+        console.log('usdt: ' + usdt.address);
+        console.log('Pool2: ' + p2.address);
+        console.log('renBtc: ' + renBtc.address);
+        console.log('xbtc: ' + btcb.address);
+        console.log('anyBtc: ' + anyBtc.address);
+        console.log('Token address: ' + bst.address);
     });
 
 

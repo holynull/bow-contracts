@@ -1,3 +1,3 @@
 export const config = {
-    proxyAddress: '0x86a2Ea3cf200517A9d06377a2BABfD185Aeb6Ba7'
+    proxyAddress: '0x958A1fCfD9EEE9c7Dd87df6cF67Aca1907D516b7'
 }

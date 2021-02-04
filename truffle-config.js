@@ -122,7 +122,7 @@ module.exports = {
             provider: () => new HDWalletProvider(mnemonic, "https://http-testnet.hecochain.com"),
             network_id: 256,
             chain_id: 256,
-            // gas: ,
+            gas: 8000000,
             // confirmations: 2,
             // timeoutBlocks: 2000,
             // skipDryRun: true,
