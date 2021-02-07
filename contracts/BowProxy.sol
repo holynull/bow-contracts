@@ -315,14 +315,9 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
                 reward.mul(10**18).div(lpSupply)
             );
         }
-        uint256 tokenBal = IHRC20(tokenAddress).balanceOf(address(walletShare));
         uint256 pending =
             user.amount.mul(accSushiPerShare).div(10**18).sub(user.rewardDebt);
-        if (tokenBal > pending) {
-            return pending;
-        } else {
-            return tokenBal;
-        }
+        return pending;
     }
 
     function massUpdatePools() external noOpenMigration {
