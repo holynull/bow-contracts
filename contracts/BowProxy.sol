@@ -345,8 +345,8 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
         uint256 rewardShare = mintAmt.mul(pool.shareRewardRate).div(10**18);
         uint256 rewardSwap = mintAmt.mul(pool.swapRewardRate).div(10**18);
-        IBowToken(tokenAddress).mint(address(walletShare), rewardShare);
-        IBowToken(tokenAddress).mint(address(walletSwap), rewardSwap);
+        IBowToken(tokenAddress).mint(address(walletShare), rewardShare.sub(1));
+        IBowToken(tokenAddress).mint(address(walletSwap), rewardSwap.sub(1));
         pool.accTokenPerShare = pool.accTokenPerShare.add(
             rewardShare.mul(10**18).div(lpSupply)
         );
