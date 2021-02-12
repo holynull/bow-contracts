@@ -11,8 +11,8 @@ contract BowTokenForTestDEV is IBowToken, HRC20, Ownable {
     address minter;
 
     uint256 HOUR = uint256(3600);
-    uint256 INITIAL_SUPPLY = uint256(4_000).mul(10**18);
-    uint256 INITIAL_RATE = uint256(1_909).mul(10**18).div(HOUR);
+    uint256 INITIAL_SUPPLY = uint256(300).mul(10**18);
+    uint256 INITIAL_RATE = uint256(3_087).mul(10**18).div(HOUR);
     uint256 RATE_REDUCTION_TIME = HOUR;
     uint256 RATE_REDUCTION_COEFFICIENT = 1189207115002721024;
     uint256 INFLATION_DELAY = 86400;

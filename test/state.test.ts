@@ -10,6 +10,8 @@ import {
     BowPoolInstance,
     BowTokenWalletContract,
     BowTokenWalletInstance,
+    AssetManagementCenterContract,
+    AssetManagementCenterInstance,
 } from '../build/types/truffle-types';
 // Load compiled artifacts
 const proxyContract: BowProxyContract = artifacts.require('BowProxy.sol');
@@ -17,6 +19,7 @@ const stableCoinContract: StableCoinContract = artifacts.require('StableCoin.sol
 const tokenContract: BowTokenForTestDEVContract = artifacts.require('BowTokenForTestDEV.sol');
 const poolContract: BowPoolContract = artifacts.require('BowPool.sol');
 const bowTokenWalletContract: BowTokenWalletContract = artifacts.require('BowTokenWallet.sol');
+const assetManagementCenterContract: AssetManagementCenterContract = artifacts.require('AssetManagementCenter.sol');
 import { BigNumber } from 'bignumber.js';
 import { config } from './config'
 
@@ -36,6 +39,7 @@ contract('Bow proxy', async accounts => {
     let walletShare: BowTokenWalletInstance;
     let walletSwap: BowTokenWalletInstance;
     let walletStaking: BowTokenWalletInstance;
+    // let amc: AssetManagementCenterInstance;
     let denominator = new BigNumber(10).exponentiatedBy(18);
 
 
@@ -57,6 +61,8 @@ contract('Bow proxy', async accounts => {
         walletShare = await bowTokenWalletContract.at(walletAddresses[0]);
         walletSwap = await bowTokenWalletContract.at(walletAddresses[1]);
         walletStaking = await bowTokenWalletContract.at(walletAddresses[2]);
+        // let amcAddress = await proxyInstance.getAmcAddress();
+        // amc = await assetManagementCenterContract.at(amcAddress);
         console.log('======================================================');
     });
 
@@ -117,8 +123,18 @@ contract('Bow proxy', async accounts => {
             console.log('BST stage: ' + stage);
             let startSupply = await bst.startEpochSupply();
             console.log('BST startSupply: ' + new BigNumber(startSupply).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+            // let bowLockedAmtStr = await bst.balanceOf(amc.address);
+            // console.log('Token locked: ' + new BigNumber(bowLockedAmtStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+            let devAmtStr = await bst.balanceOf(accounts[0]);
+            console.log('Token dev get: ' + new BigNumber(devAmtStr).div(denominator).minus(300).toFormat(18, BigNumber.ROUND_DOWN))
             let startTime = await bst.startEpochTime();
             console.log('BST start time: ' + new Date(Number(startTime) * 1000));
+            let p1AdminFee_0 = await p1.admin_balances(0);
+            console.log("P1 admin fee 0: " + new BigNumber(p1AdminFee_0).div(denominator).toFormat(4, 1));
+            let p1AdminFee_1 = await p1.admin_balances(1);
+            console.log("P1 admin fee 1: " + new BigNumber(p1AdminFee_1).div(denominator).toFormat(4, 1));
+            let p1AdminFee_2 = await p1.admin_balances(2);
+            console.log("P1 admin fee 2: " + new BigNumber(p1AdminFee_2).div(denominator).toFormat(4, 1));
             console.log('======================================================');
             console.log('Pool1: ' + p1.address);
             console.log('dai: ' + dai.address);

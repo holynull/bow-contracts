@@ -56,6 +56,13 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
     BowTokenWallet walletSwap;
     BowTokenWallet walletLPStaking;
 
+    address devAddress;
+    address amcAddress;
+    uint256 devPoints = 10;
+    uint256 amcPoints = 15;
+    uint256 communityPoints = 72;
+    uint256 mintTotalPoints = 97;
+
     modifier noOpenMigration() {
         require(!_openMigration, "a migration is open.");
         _;
@@ -64,11 +71,22 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _tokenAddress
+        address _tokenAddress,
+        address _amcAddress
     ) public HRC20(_name, _symbol) {
         transferOwnership(msg.sender);
         tokenAddress = _tokenAddress;
         createWallet();
+        devAddress = msg.sender;
+        amcAddress = _amcAddress;
+    }
+
+    function getDevAddress() public view returns (address) {
+        return devAddress;
+    }
+
+    function getAmcAddress() public view returns (address) {
+        return amcAddress;
     }
 
     function createWallet() internal {
@@ -343,8 +361,13 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
                 IBowToken(tokenAddress).totalSupply()
             );
         uint256 mintAmt = releaseAmt.mul(pool.allocPoint).div(totalAllocPoint);
-        uint256 rewardShare = mintAmt.mul(pool.shareRewardRate).div(10**18);
-        uint256 rewardSwap = mintAmt.mul(pool.swapRewardRate).div(10**18);
+        uint256 rewardTotal = mintAmt.mul(communityPoints).div(mintTotalPoints);
+        uint256 devAmt = mintAmt.mul(devPoints).div(mintTotalPoints);
+        uint256 amcAmt = mintAmt.mul(amcPoints).div(mintTotalPoints);
+        uint256 rewardShare = rewardTotal.mul(pool.shareRewardRate).div(10**18);
+        uint256 rewardSwap = rewardTotal.mul(pool.swapRewardRate).div(10**18);
+        IBowToken(tokenAddress).mint(devAddress, devAmt.sub(1));
+        IBowToken(tokenAddress).mint(amcAddress, amcAmt.sub(1));
         IBowToken(tokenAddress).mint(address(walletShare), rewardShare.sub(1));
         IBowToken(tokenAddress).mint(address(walletSwap), rewardSwap.sub(1));
         pool.accTokenPerShare = pool.accTokenPerShare.add(
@@ -525,7 +548,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         uint256 _pid,
         uint256 shareRate,
         uint256 swapRate
-    ) external {
+    ) external onlyOwner {
         require(
             shareRate.add(swapRate) <= 1_000_000_000_000_000_000,
             "sum rate lower then 100%"
@@ -534,7 +557,10 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         pools[_pid].swapRewardRate = swapRate;
     }
 
-    function setPoolCoins(uint256 _pid, address[] calldata _coins) external {
+    function setPoolCoins(uint256 _pid, address[] calldata _coins)
+        external
+        onlyOwner
+    {
         pools[_pid].coins = _coins;
     }
 
@@ -548,7 +574,7 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         pools[_pid].allocPoint = _allocPoint;
     }
 
-    function migratePoolInfo(IBowProxy from) private {
+    function migratePoolInfo(IBowProxy from) internal {
         address _poolAddress;
         address[] memory _coins;
         uint256[] memory _data;
@@ -602,5 +628,25 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         // );
 
         migrateFrom = _from;
+    }
+
+    function setDevAddress(address nDevAddress) public onlyOwner {
+        devAddress = nDevAddress;
+    }
+
+    function setAmcAddress(address nAmcAddress) public onlyOwner {
+        amcAddress = nAmcAddress;
+    }
+
+    function setAllocPoints(
+        uint256 _devPoints,
+        uint256 _amcPoints,
+        uint256 _communityPoints,
+        uint256 _totalPoints
+    ) public onlyOwner {
+        devPoints = _devPoints;
+        amcPoints = _amcPoints;
+        communityPoints = _communityPoints;
+        mintTotalPoints = _totalPoints;
     }
 }

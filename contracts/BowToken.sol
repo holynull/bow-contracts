@@ -11,8 +11,8 @@ contract BowToken is IBowToken, HRC20, Ownable {
     address minter;
 
     uint256 YEAR = uint256(86400).mul(365);
-    uint256 INITIAL_SUPPLY = uint256(40_000_000).mul(10**18);
-    uint256 INITIAL_RATE = uint256(19_092_430).mul(10**18).div(YEAR);
+    uint256 INITIAL_SUPPLY = uint256(3_000_000).mul(10**18);
+    uint256 INITIAL_RATE = uint256(30_866_095).mul(10**18).div(YEAR);
     uint256 RATE_REDUCTION_TIME = YEAR;
     uint256 RATE_REDUCTION_COEFFICIENT = 1189207115002721024;
     uint256 INFLATION_DELAY = 86400;

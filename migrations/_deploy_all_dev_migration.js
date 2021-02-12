@@ -2,6 +2,7 @@ const BowPool = artifacts.require("BowPool");
 const StableCoin = artifacts.require("StableCoin");
 const BowProxy = artifacts.require("BowProxy");
 const BowTokenForTestDEV = artifacts.require("BowTokenForTestDEV");
+const AssetManangementCenter = artifacts.require("AssetManagementCenter");
 
 module.exports = async function (deployer) {
     if (deployer.network.indexOf('skipMigrations') > -1) { // skip migration
@@ -66,8 +67,10 @@ module.exports = async function (deployer) {
             p2Address = pool.address;
             return BowTokenForTestDEV.new("Bow DAO Token", "BOW");
         }).then(async bow => {
+            let amc = await AssetManangementCenter.new();
+            await amc.addAsset(bow.address, 0, 1);
             console.log("Token's address: " + bow.address);
-            let proxy = await BowProxy.new("Bow Pools Proxy for test", "BOWPROXY-V1", bow.address);
+            let proxy = await BowProxy.new("Bow Pools Proxy for test", "BOWPROXY-V1", bow.address, amc.address);
             // await proxy.createWallet();
             console.log("Proxy's address: " + proxy.address);
             await proxy.addPool(p1Address, [daiAddress, busdAddress, usdtAddress], 6);

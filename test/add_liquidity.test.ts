@@ -37,7 +37,7 @@ contract('Bow proxy', async accounts => {
     describe('测试添加流动性', async () => {
 
         it('每个账户添加10,000流动性', async () => {
-            for (let i = 0; i < accounts.length; i++) {
+            for (let i = 1; i < accounts.length; i++) {
                 let amt = web3.utils.toWei('10000', 'ether');
                 await poolInstance1.add_liquidity([amt, amt, amt], 0, { from: accounts[i] });
                 await poolInstance2.add_liquidity([amt, amt, amt], 0, { from: accounts[i] });
