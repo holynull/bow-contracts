@@ -238,7 +238,9 @@ contract BowProxy is IBowProxy, HRC20, Ownable, ReentrancyGuard {
         require(dy.mul(dy).div(dx) > 0, "accumulate points is 0");
         uint256 tokenAmt = IHRC20(tokenAddress).balanceOf(address(walletSwap));
         uint256 rewardAmt;
-        if (pools[_pid].totalVolAccPoints > 0) {
+        if (
+            pools[_pid].totalVolAccPoints > 0 && pools[_pid].totalVolReward > 0
+        ) {
             rewardAmt = pools[_pid].totalVolReward.mul(dy.mul(dy).div(dx)).div(
                 pools[_pid].totalVolAccPoints
             );
