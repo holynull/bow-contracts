@@ -39,7 +39,7 @@ contract('Bow proxy', async accounts => {
     let walletShare: BowTokenWalletInstance;
     let walletSwap: BowTokenWalletInstance;
     let walletStaking: BowTokenWalletInstance;
-    // let amc: AssetManagementCenterInstance;
+    let amc: AssetManagementCenterInstance;
     let denominator = new BigNumber(10).exponentiatedBy(18);
 
 
@@ -61,8 +61,8 @@ contract('Bow proxy', async accounts => {
         walletShare = await bowTokenWalletContract.at(walletAddresses[0]);
         walletSwap = await bowTokenWalletContract.at(walletAddresses[1]);
         walletStaking = await bowTokenWalletContract.at(walletAddresses[2]);
-        // let amcAddress = await proxyInstance.getAmcAddress();
-        // amc = await assetManagementCenterContract.at(amcAddress);
+        let amcAddress = await proxyInstance.getAmcAddress();
+        amc = await assetManagementCenterContract.at(amcAddress);
         console.log('======================================================');
     });
 
@@ -123,8 +123,8 @@ contract('Bow proxy', async accounts => {
             console.log('BST stage: ' + stage);
             let startSupply = await bst.startEpochSupply();
             console.log('BST startSupply: ' + new BigNumber(startSupply).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
-            // let bowLockedAmtStr = await bst.balanceOf(amc.address);
-            // console.log('Token locked: ' + new BigNumber(bowLockedAmtStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
+            let bowLockedAmtStr = await bst.balanceOf(amc.address);
+            console.log('Token locked: ' + new BigNumber(bowLockedAmtStr).div(denominator).toFormat(18, BigNumber.ROUND_DOWN));
             let devAmtStr = await bst.balanceOf(accounts[0]);
             console.log('Token dev get: ' + new BigNumber(devAmtStr).div(denominator).minus(300).toFormat(18, BigNumber.ROUND_DOWN))
             let startTime = await bst.startEpochTime();
